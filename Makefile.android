@@ -1,0 +1,20 @@
+ROOT=/S/SOURCES
+NDK=android-ndk-r6b
+PREFIX=$(ROOT)/$(NDK)/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86/bin/arm-linux-androideabi-
+
+SYSROOT=--sysroot=$(ROOT)/$(NDK)/platforms/android-9/arch-arm/
+
+CC=$(PREFIX)gcc $(SYSROOT)
+CFLAGS=-Wall -O2 -DANDROID
+
+all: odd
+
+odd: odd.o
+	$(CC) odd.o -o odd
+
+odd.o: odd.c
+	$(CC) $(CFLAGS) -c odd.c
+
+clean:
+	rm -rf odd.o
+
