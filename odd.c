@@ -1,16 +1,19 @@
-/* (C) 2011-2012 Sebastian Krahmer all rights reserved.
+/* (C) 2011-2017 Sebastian Krahmer all rights reserved.
  *
- * Optimized dd, to speed up backups etc.
+ * odd is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * For non-commercial use, you can use it under the GPL.
+ * odd is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * Any use of this code or GPL-derived code for commercial purposes must ask
- * for prior written permission. This includes, but is not limited to use
- * by forensic labs or companies, use during computer administration or backups
- * at labs/instituts/government or companies (e.g. anything that is your 'job' or
- * is done to make money).
- *
+ * You should have received a copy of the GNU General Public License
+ * along with odd.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #define _GNU_SOURCE
 
 #include <time.h>
@@ -496,7 +499,12 @@ int copy(struct dd_config *ddc)
 
 void usage(const char *msg)
 {
-	fprintf(stderr, "Usage: odd [if=F1] [of=F2] [send|mmap|cores=N] [bsize] [skip=N] [count=N] [quiet] [nosync]\n");
+	fprintf(stderr, "\nodd -- optimized dd (C) 2011-2017 Sebastian Krahmer\n\n"
+	        "Usage:\todd [if=F1] [of=F2] [send|mmap=N MB|cores=N] [bs=N] [skip=N] [count=N]\n"
+	        "\t[quiet] [direct] [nosync]\n\n"
+	        "Switches mimic classical 'dd' behavior. You can choose copy strategies:\n"
+	        "'send' uses sendfile(2), 'mmap' copies via mmap(2) in N Megabyte chunks.\n"
+	        "Default is using splice(2). You can balance to 'cores' CPU cores\n\n");
 	exit(0);
 }
 
@@ -544,6 +552,10 @@ int main(int argc, char **argv)
 
 	/* emulate 'dd' argument parsing */
 	for (i = 1; i < argc; ++i) {
+		if (strcmp(argv[i], "-h") == 0 ||
+		    strcmp(argv[i], "--help") == 0)
+			usage(argv[0]);
+
 		memset(buf, 0, sizeof(buf));
 		if (sscanf(argv[i], "if=%1023c", buf) == 1)
 			config.in = strdup(buf);
@@ -586,7 +598,7 @@ int main(int argc, char **argv)
 
 
 	if (config.cores && (config.mmap || config.sf)) {
-		fprintf(stderr, "Error: 'cores' only works in splice mode, not 'mmap' or 'sf'\n");
+		fprintf(stderr, "Error: 'cores' only works in splice mode, not 'mmap' or 'send'\n");
 		exit(1);
 	}
 
